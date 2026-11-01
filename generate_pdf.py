@@ -314,8 +314,8 @@ def cover_page(S):
 
     # Subtitle strip
     subtitle_data = [[Paragraph(
-        "Using Greedy Best-First Search &nbsp;|&nbsp; Genetic Algorithm &nbsp;|&nbsp; "
-        "Bayesian Network &nbsp;|&nbsp; Markov Decision Process",
+        "Using BFS &nbsp;|&nbsp; A* Search &nbsp;|&nbsp; Genetic Algorithm &nbsp;|&nbsp; "
+        "PSO &nbsp;|&nbsp; Bayesian Network &nbsp;|&nbsp; MDP",
         ParagraphStyle("sub", parent=S["title_sub"], fontSize=10,
                        textColor=white, alignment=TA_CENTER)
     )]]
@@ -334,7 +334,7 @@ def cover_page(S):
         "Mario is supported by an experimental AI Adventure Assistant that "
         "observes the level, evaluates risk, searches for routes, predicts enemy "
         "behaviour, manages power-ups, and helps choose optimal actions. This "
-        "case study explores four fundamental AI algorithms applied to real "
+        "case study explores seven fundamental AI algorithms applied to real "
         "in-game scenarios.",
         ParagraphStyle("gd", parent=S["body"], fontSize=10,
                        alignment=TA_JUSTIFY, leading=15)
@@ -382,12 +382,12 @@ def cover_page(S):
     story.append(Spacer(1, 1.0*cm))
 
     # Algorithm summary strip
-    algo_names = ["Greedy BFS", "Genetic Algorithm", "Bayesian Network", "MDP"]
+    algo_names = ["Greedy BFS", "BFS / A*", "Genetic Algorithm", "PSO"]
     algo_tasks = [
         "Chase the Super Star",
+        "Compare shortest routes",
         "Evolve Mario's Policy",
-        "Infer Hidden Threats",
-        "Choose Optimal Action"
+        "Tune behaviour weights",
     ]
     algo_data = [
         [Paragraph(f"<b>{a}</b><br/><font size='8'>{t}</font>",
@@ -428,6 +428,9 @@ def table_of_contents(S):
         ("",   "2.2 Genetic Algorithm — Evolve a High-Scoring Policy", None),
         ("",   "2.3 Bayesian Network — Infer Hidden Threats", None),
         ("",   "2.4 Markov Decision Process — Choose Optimal Action", None),
+        ("",   "2.5 Breadth-First Search — Guarantee the Shortest Route", None),
+        ("",   "2.6 A* Search — Balance Cost and Distance", None),
+        ("",   "2.7 Particle Swarm Optimization — Tune Mario's Policy", None),
         ("3.", "Comparative Analysis & Discussion", None),
         ("4.", "Conclusion", None),
         ("5.", "References", None),
@@ -450,7 +453,7 @@ def section_introduction(S):
 
     story.append(h2("1.1 Overview of Case Study", S))
     story.append(p(
-        "This case study explores the application of four fundamental Artificial "
+        "This case study explores the application of seven fundamental Artificial "
         "Intelligence algorithms to the iconic Super Mario Bros game environment. "
         "Rather than treating AI algorithms as abstract mathematical concepts, we "
         "embed them inside a rich, relatable narrative where Mario navigates a "
@@ -492,9 +495,18 @@ def section_introduction(S):
         [Paragraph("Greedy Best-First Search", S["body"]),
          Paragraph("Chase a Disappearing Super Star", S["body"]),
          Paragraph("Heuristic-guided fast search", S["body"])],
+        [Paragraph("Breadth-First Search", S["body"]),
+         Paragraph("Find the shortest safe route", S["body"]),
+         Paragraph("Uninformed complete search", S["body"])],
+        [Paragraph("A* Search", S["body"]),
+         Paragraph("Find an efficient optimal route", S["body"]),
+         Paragraph("Cost-aware heuristic search", S["body"])],
         [Paragraph("Genetic Algorithm", S["body"]),
          Paragraph("Evolve a High-Scoring Level-Completion Policy", S["body"]),
          Paragraph("Evolutionary optimisation, fitness landscape", S["body"])],
+        [Paragraph("Particle Swarm Optimization", S["body"]),
+         Paragraph("Tune Mario's behaviour weights", S["body"]),
+         Paragraph("Population-based continuous optimisation", S["body"])],
         [Paragraph("Bayesian Network", S["body"]),
          Paragraph("Infer Hidden Threats from Observable Clues", S["body"]),
          Paragraph("Probabilistic reasoning under uncertainty", S["body"])],
@@ -1139,6 +1151,242 @@ def build_algo_sections(S):
     return story
 
 
+# ── Additional Search and Optimisation Sections ───────────────────
+def build_additional_algo_sections(S):
+    story = []
+
+    story += algo_section(
+        number="2.5",
+        title="Breadth-First Search — Guarantee the Shortest Route",
+        narrative=(
+            "When Mario has enough time and every move has the same cost, he should "
+            "not merely choose the cell that looks closest. Breadth-First Search "
+            "explores the castle level by level. The first time it reaches the Super "
+            "Star, the route is guaranteed to use the fewest moves."
+        ),
+        peas={
+            "P": "Reach the Super Star using the minimum number of moves.",
+            "E": "The same 6x7 discrete castle grid with walls and open cells.",
+            "A": "Move Up, Down, Left, or Right to an adjacent open cell.",
+            "S": "Current cell, grid layout, visited set, and queue contents.",
+        },
+        env_props=[
+            ["Observability", "Fully Observable", "The complete grid is known before search."],
+            ["Determinism", "Deterministic", "Every legal move has a predictable result."],
+            ["Episodicity", "Sequential", "Each move changes the available future positions."],
+            ["Dynamism", "Static", "Walls and goal remain unchanged during planning."],
+            ["Continuity", "Discrete", "The state and action spaces are finite."],
+            ["Agent Count", "Single-Agent", "Only Mario is planning a route."],
+        ],
+        formulation_rows=[
+            ["State", "(row, col) position in the grid"],
+            ["Initial State", "(0, 0)"],
+            ["Goal State", "(5, 6), the Super Star cell"],
+            ["Frontier", "FIFO queue"],
+            ["Guarantee", "First goal found is shortest when all moves cost 1"],
+            ["Complexity", "O(b^d) time and space"],
+        ],
+        algo_explanation=[
+            "BFS is an uninformed search method. It expands all states at depth 0, "
+            "then depth 1, then depth 2, and so on. A FIFO queue preserves this order.",
+            "Because every Mario move costs one step, the shallowest goal is also the "
+            "shortest route. BFS is complete and optimal for this uniform-cost grid, "
+            "but its memory requirement grows quickly on large levels.",
+        ],
+        how_used_paragraphs=[
+            "The implementation starts with (0,0) in a deque and records each cell when "
+            "it is first discovered. Parent paths are stored directly for clarity.",
+            "On the supplied level, BFS returns an 11-move route. It is the best baseline "
+            "for comparing GBFS and A*: GBFS may be faster, while A* aims to reach the "
+            "same shortest route with fewer unnecessary expansions.",
+        ],
+        code_lines=[
+            "from collections import deque",
+            "",
+            "def breadth_first_search(grid, start, goal):",
+            "    queue = deque([(start, [start])])",
+            "    visited = {start}",
+            "    while queue:",
+            "        current, path = queue.popleft()",
+            "        if current == goal:",
+            "            return path",
+            "        for neighbor in open_neighbors(current):",
+            "            if neighbor not in visited:",
+            "                visited.add(neighbor)",
+            "                queue.append((neighbor, path + [neighbor]))",
+            "    return []",
+        ],
+        output_lines=[
+            "Breadth-First Search — Shortest Safe Route",
+            "Start: (0, 0) | Goal: (5, 6)",
+            "Nodes expanded: 30",
+            "Shortest path length: 11 moves",
+            "Path reaches the Super Star successfully.",
+        ],
+        key_obs=[
+            "BFS is complete and guarantees the shortest route for equal-cost moves.",
+            "It provides a reliable reference result for the informed search algorithms.",
+            "Its main weakness is memory use because every frontier layer is retained.",
+        ],
+        S=S,
+    )
+
+    story += algo_section(
+        number="2.6",
+        title="A* Search — Balance Cost and Distance",
+        narrative=(
+            "A* gives Mario a more balanced route planner. Instead of using only the "
+            "estimated distance to the Super Star, it combines the distance already "
+            "travelled with the estimated distance remaining. This lets Mario avoid "
+            "wasted detours while preserving the shortest-path guarantee when the "
+            "heuristic is admissible."
+        ),
+        peas={
+            "P": "Reach the Super Star with minimum movement cost and limited exploration.",
+            "E": "The same deterministic castle grid used by BFS and GBFS.",
+            "A": "Move Up, Down, Left, or Right.",
+            "S": "Current cell, path cost g(n), Manhattan estimate h(n), and f(n).",
+        },
+        env_props=[
+            ["Observability", "Fully Observable", "The grid and target are available."],
+            ["Determinism", "Deterministic", "Each open-cell move costs one."],
+            ["Episodicity", "Sequential", "Earlier choices influence path cost."],
+            ["Dynamism", "Static", "The search map does not change."],
+            ["Continuity", "Discrete", "Cells and actions are discrete."],
+            ["Agent Count", "Single-Agent", "Mario is the only planner."],
+        ],
+        formulation_rows=[
+            ["State", "(row, col) position"],
+            ["Path Cost g(n)", "Number of moves taken so far"],
+            ["Heuristic h(n)", "Manhattan distance to the goal"],
+            ["Evaluation f(n)", "f(n) = g(n) + h(n)"],
+            ["Data Structure", "Priority queue ordered by f(n)"],
+            ["Guarantee", "Optimal with an admissible, consistent heuristic"],
+        ],
+        algo_explanation=[
+            "A* is an informed best-first search algorithm. It prioritises the state "
+            "with the smallest f(n)=g(n)+h(n), so it considers both actual cost and "
+            "estimated remaining cost.",
+            "For a four-direction grid with unit movement costs, Manhattan distance "
+            "never overestimates the remaining cost. Therefore A* is complete and "
+            "optimal, while usually expanding fewer irrelevant cells than BFS.",
+        ],
+        how_used_paragraphs=[
+            "Mario starts with g=0. Each neighbour receives a new cost of g+1 and a "
+            "Manhattan estimate to (5,6). The priority queue always selects the lowest "
+            "combined score.",
+            "The result is an 11-move shortest path with focused exploration. A* is "
+            "therefore a strong default when the level is known and speed plus route "
+            "quality both matter.",
+        ],
+        code_lines=[
+            "import heapq",
+            "",
+            "def a_star_search(grid, start, goal):",
+            "    open_list = [(heuristic(start, goal), 0, start, [start])]",
+            "    best_cost = {start: 0}",
+            "    while open_list:",
+            "        f, cost, current, path = heapq.heappop(open_list)",
+            "        if current == goal:",
+            "            return path",
+            "        for neighbor in open_neighbors(current):",
+            "            new_cost = cost + 1",
+            "            if new_cost < best_cost.get(neighbor, inf):",
+            "                best_cost[neighbor] = new_cost",
+            "                heapq.heappush(open_list,",
+            "                    (new_cost + heuristic(neighbor, goal),",
+            "                     new_cost, neighbor, path + [neighbor]))",
+        ],
+        output_lines=[
+            "A* Search — Efficient Shortest Route",
+            "Start: (0, 0) | Goal: (5, 6)",
+            "Nodes expanded: 21",
+            "Optimal path length: 11 moves",
+            "f(n) = g(n) + h(n) guided the search.",
+        ],
+        key_obs=[
+            "A* combines the reliability of BFS with the direction of a heuristic.",
+            "Manhattan distance is admissible here, so the 11-move route is optimal.",
+            "A* is usually preferable to GBFS when route quality cannot be sacrificed.",
+        ],
+        S=S,
+    )
+
+    story += algo_section(
+        number="2.7",
+        title="Particle Swarm Optimization — Tune Mario's Policy",
+        narrative=(
+            "Instead of evolving Mario's behaviour through genetic operators, I also "
+            "modelled Mario as a swarm-optimisation problem. Each particle represents "
+            "a possible set of behavioural weights. Particles remember their own best "
+            "policy and are attracted toward the best policy discovered by the swarm."
+        ),
+        peas={
+            "P": "Maximise completion, survival, coins, power-ups, and time efficiency.",
+            "E": "A simulated Mario level with enemies, rewards, and risky jumps.",
+            "A": "Continuous changes to seven behavioural policy weights.",
+            "S": "Current particle position, velocity, personal best, and global best.",
+        },
+        env_props=[
+            ["Observability", "Partially Observable", "Fitness summarises outcomes rather than every hidden event."],
+            ["Determinism", "Stochastic", "Random initial particles and velocity updates are used."],
+            ["Episodicity", "Sequential", "Iterations improve the best policy over time."],
+            ["Dynamism", "Dynamic", "The swarm changes its candidate policies each iteration."],
+            ["Continuity", "Continuous", "Each policy dimension is a real value in [0,1]."],
+            ["Agent Count", "Multi-Agent", "Particles cooperate indirectly as a swarm."],
+        ],
+        formulation_rows=[
+            ["Particle", "A seven-dimensional candidate Mario policy"],
+            ["Position", "[coin, power-up, avoidance, jump, goal, retreat, space]"],
+            ["Velocity", "Direction and magnitude of each policy update"],
+            ["Fitness", "Composite score for completion, rewards, and survival"],
+            ["Update Rule", "Inertia + personal attraction + social attraction"],
+            ["Bounds", "Each policy weight is clipped to [0,1]"],
+        ],
+        algo_explanation=[
+            "PSO is a population-based continuous optimisation technique inspired by "
+            "the movement of birds or fish. Every particle moves through the search "
+            "space using its velocity and learns from two sources: its own best position "
+            "and the swarm's global best position.",
+            "Unlike GA, PSO does not require crossover or mutation. Its simple social "
+            "update can converge quickly, but it can also converge prematurely if the "
+            "swarm loses diversity or the fitness function is poorly designed.",
+        ],
+        how_used_paragraphs=[
+            "Each of the 20 particles starts with seven random weights. The fitness "
+            "function is kept comparable with the GA experiment, rewarding progress, "
+            "coins, power-ups, survival, and safe movement.",
+            "After 30 iterations, the swarm reports its best policy. This makes PSO a "
+            "useful alternative when Mario's control parameters are continuous and a "
+            "good policy can be evaluated without differentiable mathematics.",
+        ],
+        code_lines=[
+            "for particle in swarm:",
+            "    for d in range(DIMENSIONS):",
+            "        velocity[d] = (INERTIA * velocity[d]",
+            "            + COGNITIVE * r1 * (personal_best[d] - position[d])",
+            "            + SOCIAL * r2 * (global_best[d] - position[d]))",
+            "        position[d] = clip(position[d] + velocity[d], 0.0, 1.0)",
+            "    score = fitness(position)",
+            "    update_personal_and_global_bests(particle, score)",
+        ],
+        output_lines=[
+            "Particle Swarm Optimization — Tuning Mario's Policy",
+            "Particles: 20 | Iterations: 30",
+            "Best fitness: 680.00",
+            "GoalUrgency: 1.000 | EnemyAvoidance: 1.000",
+            "JumpAggressiveness: 1.000 | OpenSpacePreference: 1.000",
+        ],
+        key_obs=[
+            "PSO found a high-scoring policy by sharing information across particles.",
+            "The result is sensitive to inertia, learning coefficients, and fitness design.",
+            "PSO complements GA: both optimise policies, but they explore the search space differently.",
+        ],
+        S=S,
+    )
+    return story
+
+
 # ── Section 3: Comparative Analysis ──────────────────────────────
 def section_comparative(S):
     story = []
@@ -1204,9 +1452,9 @@ def section_comparative(S):
     story.append(comp_table)
     story.append(Spacer(1, 0.3*cm))
 
-    story.append(h2("Discussion: Why These Four Algorithms Complement Each Other", S))
+    story.append(h2("Discussion: Why These Seven Algorithms Complement Each Other", S))
     story.append(p(
-        "These four algorithms address different phases of Mario's intelligence. "
+        "These seven algorithms address different phases of Mario's intelligence. "
         "<b>Greedy BFS</b> solves immediate navigation when speed matters and a "
         "heuristic is available. It is cheap to implement and works well for "
         "time-sensitive objectives like chasing a disappearing star. However, it "
@@ -1219,6 +1467,13 @@ def section_comparative(S):
         "multiple competing criteria (coins vs. survival vs. level completion). The "
         "GA's population-based search avoids local optima that single-trajectory "
         "methods like hill-climbing would get trapped in.", S
+    ))
+    story.append(p(
+        "<b>BFS</b> provides a dependable shortest-path baseline, while <b>A*</b> "
+        "uses the same guarantee with a heuristic that focuses exploration. "
+        "The <b>Particle Swarm Optimization</b> experiment offers another way to "
+        "tune continuous behaviour weights, complementing the Genetic Algorithm's "
+        "selection, crossover, and mutation approach.", S
     ))
     story.append(p(
         "The <b>Bayesian Network</b> addresses partial observability — the most "
@@ -1293,7 +1548,7 @@ def section_conclusion(S):
 
     story.append(h2("Result Analysis", S))
     story.append(p(
-        "This case study demonstrated how four fundamentally different AI algorithms "
+        "This case study demonstrated how seven fundamentally different AI algorithms "
         "can each contribute to making Mario an intelligent agent. The results were "
         "both technically sound and practically insightful:", S
     ))
@@ -1329,9 +1584,10 @@ def section_conclusion(S):
     story.append(h2("Broader Reflections", S))
     story.append(p(
         "Working on this case study helped me understand something important about "
-        "AI — no single algorithm is the 'best'. Each of the four methods I implemented "
-        "has a specific strength that becomes valuable in the right context. Greedy "
-        "BFS is intuitive and fast but sacrifices correctness. Genetic Algorithms are "
+        "AI — no single algorithm is the 'best'. Each method I implemented has a "
+        "specific strength that becomes valuable in the right context. BFS is reliable, "
+        "A* balances route quality with speed, and Greedy BFS is intuitive and fast "
+        "but sacrifices correctness. Genetic Algorithms and PSO are "
         "powerful optimisers but require careful fitness function design to avoid "
         "rewarding wrong behaviour. Bayesian Networks make reasoning under uncertainty "
         "mathematically principled, while MDPs complete the decision cycle by "
@@ -1409,8 +1665,8 @@ def section_references(S):
         Paragraph(
             "<b>Siddhant Kumar Singh &nbsp;|&nbsp; Roll No: 2024109296</b><br/>"
             "Case Study in Artificial Intelligence — Super Mario AI<br/>"
-            "Algorithms: Greedy BFS &nbsp;|&nbsp; Genetic Algorithm &nbsp;|&nbsp; "
-            "Bayesian Network &nbsp;|&nbsp; Markov Decision Process",
+            "Algorithms: BFS &nbsp;|&nbsp; A* &nbsp;|&nbsp; Greedy BFS &nbsp;|&nbsp; "
+            "GA &nbsp;|&nbsp; PSO &nbsp;|&nbsp; Bayesian Network &nbsp;|&nbsp; MDP",
             ParagraphStyle("ft", parent=S["body"], alignment=TA_CENTER,
                            textColor=white, fontSize=9)
         )
@@ -1445,6 +1701,7 @@ def build_pdf():
     story += table_of_contents(S)
     story += section_introduction(S)
     story += build_algo_sections(S)
+    story += build_additional_algo_sections(S)
     story += section_comparative(S)
     story += section_conclusion(S)
     story += section_references(S)
